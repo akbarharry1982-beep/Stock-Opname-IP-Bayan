@@ -46,7 +46,7 @@
                     Stock Opname
                 </h1>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-500 mb-1">Tanggal/Jam</label>
                         <input type="text" id="dateTime" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg px-3 py-2" readonly>
@@ -59,9 +59,50 @@
                         </select>
                     </div>
                     <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Plant</label>
+                        <select id="plant" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="PL01 - MSJ">PL01 - MSJ</option>
+                            <option value="PL02 - TDM">PL02 - TDM</option>
+                            <option value="PL03 - SBB">PL03 - SBB</option>
+                            <option value="PL04 - AGM">PL04 - AGM</option>
+                            <option value="PL05 - PMSS">PL05 - PMSS</option>
+                            <option value="PL06 - MAS">PL06 - MAS</option>
+                            <option value="PL07 - CMX MSJ">PL07 - CMX MSJ</option>
+                            <option value="PL08 - CMX PLRN">PL08 - CMX PLRN</option>
+                            <option value="PL09 - CMX AGM">PL09 - CMX AGM</option>
+                            <option value="PL10 - BSSR 2">PL10 - BSSR 2</option>
+                            <option value="PL11 - PKM">PL11 - PKM</option>
+                            <option value="PL12 - SMD">PL12 - SMD</option>
+                            <option value="PL13 - JKT">PL13 - JKT</option>
+                            <option value="PL14 - KUP">PL14 - KUP</option>
+                            <option value="PL15 - TAJ">PL15 - TAJ</option>
+                            <option value="PL16 - MME">PL16 - MME</option>
+                            <option value="PL17 - MBL MINNING">PL17 - MBL MINNING</option>
+                            <option value="PL18 - CMX MAS">PL18 - CMX MAS</option>
+                            <option value="PL19 - CMX CILEGON">PL19 - CMX CILEGON</option>
+                            <option value="PL20 - SAS">PL20 - SAS</option>
+                            <option value="PL21 - BSEE">PL21 - BSEE</option>
+                            <option value="PL22 - BRN">PL22 - BRN</option>
+                            <option value="PL23 - KUD">PL23 - KUD</option>
+                            <option value="PL24 - BYN">PL24 - BYN</option>
+                            <option value="PL25 - CDI">PL25 - CDI</option>
+                            <option value="PL26 - MHU">PL26 - MHU</option>
+                            <option value="PL27 - MBL HAULING">PL27 - MBL HAULING</option>
+                            <option value="PL28 - DC PLRN">PL28 - DC PLRN</option>
+                            <option value="PL31 - MHU">PL31 - MHU</option>
+                            <option value="PL32 - MHU">PL32 - MHU</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-xs font-semibold text-gray-500 mb-1">Pelaksana</label>
                         <input type="text" id="pelaksana" placeholder="Nama Pelaksana" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
+                </div>
+                
+                <!-- Kolom Catatan Tambahan -->
+                <div class="mt-3">
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">Catatan / Keterangan (Opsional)</label>
+                    <input type="text" id="catatan" placeholder="Tambahkan catatan opname jika ada..." class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
         </div>
@@ -108,29 +149,31 @@
             </div>
             
             <!-- Tombol Simpan di bawah tabel -->
-        <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-            <button id="btnSave" onclick="saveData()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg id="iconSave" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                <svg id="iconLoading" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                <span id="textSave">Simpan Data</span>
-            </button>
+            <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+                <button id="btnSave" onclick="saveData()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg id="iconSave" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
+                    <svg id="iconLoading" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span id="textSave">Simpan Data</span>
+                </button>
+            </div>
         </div>
-    </div>
 
         <!-- History Section -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="p-4 border-b border-gray-100 bg-gray-50/50">
-                <h2 class="font-semibold text-gray-700">Riwayat Data Tersimpan (10 Terbaru)</h2>
+                <h2 class="font-semibold text-gray-700">Riwayat Data Tersimpan</h2>
             </div>
             
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead class="text-[11px] text-gray-700 uppercase bg-gray-100 border-b">
                         <tr>
-                            <th class="px-3 py-2 w-24">Waktu</th>
+                            <th class="px-3 py-2 w-28">Waktu</th>
                             <th class="px-3 py-2">Material</th>
                             <th class="px-3 py-2">Pelaksana</th>
                             <th class="px-3 py-2 w-16">Shift</th>
+                            <th class="px-3 py-2">Plant</th>
+                            <th class="px-3 py-2">Catatan</th>
                             <th class="px-3 py-2">Batch</th>
                             <th class="px-3 py-2 w-20 text-right">Unres</th>
                             <th class="px-3 py-2 w-20 text-right">Aktual</th>
@@ -155,10 +198,10 @@
     </div>
 
     <script>
-        // MASUKKAN URL DEPLOY WEB APP DARI GOOGLE APPS SCRIPT DI SINI!
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbyIqAtmzpG_6hElsTKsG6MCIRlsQ6QJLoifpzTEyzgSj4sI13gFAk0LXaNl37meXcw/exec"; 
+        // URL DEPLOY WEB APP DARI GOOGLE APPS SCRIPT
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbywTVMNtEir1xa1Ywxh6b8BvLLQgAD1K-uz9RKutAH_HeQLRIBKr5VwtrEwjRFsMg91/exec"; 
 
-        // Konstanta Database Sheet MB52 (Harus Public)
+        // Konstanta Database Sheet MB52
         const DB_URL = "https://docs.google.com/spreadsheets/d/1MX28Ep8ZHH2Sznb5Tbj0xVzAw06p5-Ndw0C_kIBt86M/export?format=csv&gid=932596458";
         let mb52Data = [];
 
@@ -242,20 +285,15 @@
                 e.preventDefault();
                 const code = this.value.trim();
                 if(code) {
-                    // Kosongkan tabel terlebih dahulu (One-by-one mode)
                     document.getElementById('tableBody').innerHTML = '';
-                    
                     const foundItems = lookupMaterial(code);
                     
                     if(foundItems.length > 0) {
-                        // Jika material ditemukan, tambahkan semua lokasinya
                         foundItems.forEach(data => addEmptyRow(data.material, data));
                     } else {
-                        // Jika tidak ada di DB, tetap buatkan 1 baris
                         addEmptyRow(code, null);
                     }
                     
-                    // Kosongkan input dan fokus ke kolom aktual pertama
                     this.value = '';
                     const firstAktual = document.querySelector('.input-aktual');
                     if(firstAktual) {
@@ -305,7 +343,6 @@
             
             tbody.appendChild(tr);
 
-            // Set data text inside divs
             if (dbData) {
                 tr.querySelector('.input-material').textContent = dbData.material;
                 tr.querySelector('.input-desc').textContent = dbData.desc;
@@ -318,7 +355,6 @@
                 tr.querySelector('.input-material').textContent = materialCode;
             }
             
-            // Event Listeners for Calculation
             const aktualInput = tr.querySelector('.input-aktual');
             aktualInput.addEventListener('input', () => calculateSelisih(tr));
             aktualInput.addEventListener('focus', function() { this.select(); });
@@ -333,7 +369,6 @@
             const selisihCell = row.querySelector('.cell-selisih');
             
             if(aktualInput === "") {
-                // Jangan tampilkan apapun jika Aktual belum diisi
                 selisihCell.textContent = "";
                 selisihCell.className = 'cell-selisih text-right font-bold text-gray-400 min-h-[20px] flex items-center justify-end';
             } else {
@@ -362,7 +397,9 @@
         async function saveData() {
             const dateTime = document.getElementById('dateTime').value;
             const shift = document.getElementById('shift').value;
+            const plant = document.getElementById('plant').value;
             const pelaksana = document.getElementById('pelaksana').value;
+            const catatan = document.getElementById('catatan').value;
             
             const trs = document.querySelectorAll('#tableBody tr');
             if(trs.length === 0) return;
@@ -394,12 +431,13 @@
             const payload = {
                 waktu: dateTime,
                 shift: shift,
+                plant: plant,
                 pelaksana: pelaksana || 'Tanpa Nama',
+                catatan: catatan || '-',
                 material: cleanMaterial,
                 items: currentItemsToSave
             };
 
-            // Mengubah state tombol menjadi Loading
             const btnSave = document.getElementById('btnSave');
             const iconSave = document.getElementById('iconSave');
             const iconLoading = document.getElementById('iconLoading');
@@ -411,35 +449,28 @@
             textSave.textContent = "Mengirim...";
 
             try {
-                // Jangan kirim ke database jika URL belum di set
-                if (GAS_URL !== "URL_WEB_APP_ANDA_DISINI") {
-                    const response = await fetch(GAS_URL, {
-                        method: 'POST',
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    const result = await response.json();
-                    if (result.status === 'error') {
-                        throw new Error(result.message);
-                    }
-                } else {
-                    console.warn("GAS URL belum diisi, mensimulasikan penyimpanan berhasil untuk testing.");
-                    await new Promise(r => setTimeout(r, 1000)); // Simulasi loading
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                if (result.status === 'error') {
+                    throw new Error(result.message);
                 }
 
-                // Jika berhasil: simpan juga ke history lokal, reset tabel, tampilkan notifikasi sukses
-                saveToHistory(dateTime, pelaksana, shift, currentItemsToSave, cleanMaterial);
+                saveToHistory(dateTime, pelaksana, shift, plant, catatan, currentItemsToSave, cleanMaterial);
                 showToast("Berhasil Terkirim!", "Data telah dicatat ke Google Sheets & Riwayat lokal.", true);
                 
                 document.getElementById('tableBody').innerHTML = '';
                 document.getElementById('scanInput').focus();
+                document.getElementById('pelaksana').value = '';
+                document.getElementById('catatan').value = '';
 
             } catch (error) {
-                // Jika gagal: tampilkan notifikasi gagal
                 console.error("Gagal mengirim data:", error);
                 showToast("Gagal Mengirim!", "Terjadi kesalahan koneksi internet atau server.", false);
             } finally {
-                // Kembalikan status tombol seperti semula
                 btnSave.disabled = false;
                 iconSave.classList.remove('hidden');
                 iconLoading.classList.add('hidden');
@@ -472,7 +503,7 @@
             }, 4000);
         }
 
-        function saveToHistory(waktu, pelaksana, shift, items, title) {
+        function saveToHistory(waktu, pelaksana, shift, plant, catatan, items, title) {
             let history = JSON.parse(localStorage.getItem('so_history') || '[]');
             
             history.unshift({
@@ -480,13 +511,13 @@
                 waktu: waktu,
                 pelaksana: pelaksana || 'Tanpa Nama',
                 shift: shift,
+                plant: plant,
+                catatan: catatan || '-',
                 items: items,
                 title: title
             });
 
-            // Membatasi array history hanya menyimpan 10 riwayat terbaru
             history = history.slice(0, 10);
-
             localStorage.setItem('so_history', JSON.stringify(history));
             loadHistory();
         }
@@ -497,18 +528,16 @@
             tbody.innerHTML = '';
 
             if(history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="px-3 py-4 text-center text-gray-400">Belum ada riwayat penyimpanan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="px-3 py-4 text-center text-gray-400">Belum ada riwayat penyimpanan.</td></tr>`;
                 return;
             }
 
             history.forEach((h) => {
-                // Untuk menangani data lama yang mungkin belum menggunakan array items
                 const itemsToRender = h.items || [{batch: '-', unres: '-', aktual: '-', selisih: '-'}];
                 
                 itemsToRender.forEach((item) => {
                     const tr = document.createElement('tr');
                     
-                    // Mewarnai nilai selisih seperti pada tabel utama
                     let selisihHTML = item.selisih;
                     let sVal = parseFloat(item.selisih);
                     if(!isNaN(sVal)) {
@@ -522,6 +551,8 @@
                         <td class="px-3 py-2 font-bold text-blue-700">${h.title || '-'}</td>
                         <td class="px-3 py-2">${h.pelaksana}</td>
                         <td class="px-3 py-2">${h.shift}</td>
+                        <td class="px-3 py-2 font-mono text-xs text-gray-500">${h.plant || '-'}</td>
+                        <td class="px-3 py-2 text-gray-500 italic">${h.catatan || '-'}</td>
                         <td class="px-3 py-2 font-mono text-xs">${item.batch || '-'}</td>
                         <td class="px-3 py-2 text-right">${item.unres}</td>
                         <td class="px-3 py-2 text-right font-bold text-blue-700">${item.aktual}</td>
