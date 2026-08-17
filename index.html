@@ -20,30 +20,30 @@
 </head>
 <body class="text-gray-800 antialiased">
 
-    <nav class="bg-blue-700 text-white shadow-md mb-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center">
-                    <i class="fas fa-boxes text-2xl mr-3"></i>
-                    <h1 class="text-xl font-bold">Aplikasi Stock Opname</h1>
+    <nav class="bg-blue-700 text-white shadow-md mb-4 sm:mb-6">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-14 sm:h-16 items-center">
+                <div class="flex items-center shrink-0">
+                    <i class="fas fa-boxes text-base sm:text-2xl mr-2 sm:mr-3"></i>
+                    <h1 class="text-sm sm:text-xl font-bold">Aplikasi Stock Opname</h1>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div id="cloud-status" class="bg-gray-700 px-3 py-1 rounded-full text-sm flex items-center border border-gray-600" title="Status Penyimpanan Cloud">
-                        <i class="fas fa-cloud text-gray-300 mr-2"></i>
-                        <span class="text-gray-100 text-xs font-medium">Menyambungkan...</span>
+                <div class="flex items-center gap-1 sm:gap-2 overflow-hidden">
+                    <div id="cloud-status" class="bg-gray-700 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-gray-600 whitespace-nowrap" title="Status Penyimpanan Cloud">
+                        <i class="fas fa-cloud text-gray-300 mr-1 sm:mr-2"></i>
+                        <span class="text-gray-100 font-medium hidden sm:inline">Menyambungkan...</span>
+                        <span class="text-gray-100 font-medium sm:hidden">Lokal</span>
                     </div>
-                    <div id="mb52-status" class="bg-blue-800 px-3 py-1 rounded-full text-sm flex items-center border border-blue-600">
-                        <i class="fas fa-circle-notch fa-spin text-yellow-400 mr-2"></i>
-                        <span class="text-gray-100 text-xs font-medium">Memuat MB52...</span>
+                    <div id="mb52-status" class="bg-blue-800 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-blue-600 whitespace-nowrap">
+                        <i class="fas fa-circle-notch fa-spin text-yellow-400 mr-1 sm:mr-2"></i>
+                        <span class="text-gray-100 font-medium hidden sm:inline">Memuat MB52...</span>
+                        <span class="text-gray-100 font-medium sm:hidden">Load</span>
                     </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mb-10">
             <div class="lg:col-span-3">
                 <div class="bg-white rounded-xl shadow-md p-5 border border-gray-100">
                     <h2 class="text-base font-semibold text-gray-700 mb-4 border-b pb-2"><i class="fas fa-info-circle mr-2 text-blue-600"></i>Informasi Umum</h2>
@@ -220,7 +220,7 @@
         let currentMatches = [];
         
         // URL WEB APP GOOGLE APPS SCRIPT
-        const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxg8uyEYAcaM19_GT8JKmBwFZRbdE_LPwpiqtlZSmTPPhauPUqEonaGopMHLHr_MY5H/exec";
+        const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFDcXICtvDTfQ43iuaobXBcZCPoYEKtKeUTiU2qGMvSSLqOYfBfcR609l12VFPbQY0eQ/exec";
         
         window.onload = function() {
             setInitialDateTime();
@@ -325,17 +325,21 @@
                 complete: function(results) {
                     if(results.data && results.data.length > 0) {
                         mb52Data = results.data;
-                        statusEl.className = "bg-green-100 px-3 py-1 rounded-full text-sm flex items-center border border-green-300";
-                        statusEl.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-2"></i><span class="text-green-800 font-medium">MB52 Siap ('+mb52Data.length+')</span>';
+                        statusEl.className = "bg-green-100 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-green-300 whitespace-nowrap";
+                        statusEl.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-1 sm:mr-2"></i><span class="text-green-800 font-medium hidden sm:inline">MB52 Siap ('+mb52Data.length+')</span><span class="text-green-800 font-medium sm:hidden">Siap</span>';
                     } else {
-                        statusEl.className = "bg-red-100 px-3 py-1 rounded-full text-sm flex items-center border border-red-300";
-                        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle text-red-600 mr-2"></i><span class="text-red-800 font-medium">Data Kosong</span>';
+                        statusEl.className = "bg-red-100 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-red-300 whitespace-nowrap";
+                        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle text-red-600 mr-1 sm:mr-2"></i><span class="text-red-800 font-medium hidden sm:inline">Data Kosong</span><span class="text-red-800 font-medium sm:hidden">Kosong</span>';
                     }
                 },
                 error: function(error) {
                     console.error("Error loading MB52:", error);
-                    statusEl.className = "bg-red-100 px-3 py-1 rounded-full text-sm flex items-center border border-red-300";
-                    statusEl.innerHTML = '<i class="fas fa-times-circle text-red-600 mr-2"></i><span class="text-red-800 font-medium">Gagal Load CSV</span>';
+                    statusEl.className = "bg-red-100 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-red-300 cursor-help whitespace-nowrap";
+                    statusEl.title = "Pastikan Share Google Sheet MB52 disetting 'Anyone with the link'";
+                    statusEl.innerHTML = '<i class="fas fa-times-circle text-red-600 mr-1 sm:mr-2"></i><span class="text-red-800 font-medium hidden sm:inline">Akses Ditolak</span><span class="text-red-800 font-medium sm:hidden">Ditolak</span>';
+                    
+                    // Tampilkan pesan error pop-up agar user tahu cara memperbaikinya
+                    showMessage("Gagal memuat data pencarian MB52 dari Google Sheet.<br><br><b>Solusi:</b> Buka Google Sheet MB52 Anda, klik tombol <b>Bagikan (Share)</b>, lalu ubah Akses Umum menjadi <b>'Siapa saja yang memiliki link' (Anyone with the link)</b>.", "error");
                 }
             });
         }
@@ -681,7 +685,8 @@
         const statusEl = document.getElementById('cloud-status');
 
         if (!firebaseConfig) {
-            statusEl.innerHTML = '<i class="fas fa-cloud-download-alt text-yellow-400 mr-2"></i><span class="text-yellow-100 text-xs font-medium">Offline Mode</span>';
+            statusEl.className = "bg-gray-700 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-gray-600 whitespace-nowrap";
+            statusEl.innerHTML = '<i class="fas fa-mobile-alt text-blue-300 mr-1 sm:mr-2"></i><span class="text-gray-100 font-medium hidden sm:inline">Mode Lokal (Aman)</span><span class="text-gray-100 font-medium sm:hidden">Lokal</span>';
         } else {
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
