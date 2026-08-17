@@ -44,6 +44,7 @@
     </nav>
 
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mb-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div class="lg:col-span-3">
                 <div class="bg-white rounded-xl shadow-md p-5 border border-gray-100">
                     <h2 class="text-base font-semibold text-gray-700 mb-4 border-b pb-2"><i class="fas fa-info-circle mr-2 text-blue-600"></i>Informasi Umum</h2>
@@ -54,7 +55,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Shift</label>
-                            <select id="shift" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm" onchange="savePreference('last_shift', this.value)">
+                            <select id="shift" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 <option value="">Pilih Shift</option>
                                 <option value="DS">DS (Day Shift)</option>
                                 <option value="NS">NS (Night Shift)</option>
@@ -62,7 +63,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Plant</label>
-                            <select id="plant" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm" onchange="savePreference('last_plant', this.value)">
+                            <select id="plant" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                                 <option value="">Pilih Plant</option>
                                 <option value="PL01 - MSJ">PL01 - MSJ</option>
                                 <option value="PL02 - TDM">PL02 - TDM</option>
@@ -98,7 +99,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Pelaksana</label>
-                            <input type="text" id="pelaksana" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Nama pelaksana..." oninput="savePreference('last_pelaksana', this.value)">
+                            <input type="text" id="pelaksana" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Nama pelaksana...">
                         </div>
                     </div>
                 </div>
@@ -150,7 +151,6 @@
                                 <textarea id="catatan_input_form" rows="2" class="w-full border border-yellow-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white" placeholder="Ketik catatan di sini (misal: barang rusak, terselip) sebelum klik Simpan..."></textarea>
                             </div>
 
-                            <!-- Tombol Simpan Utama -->
                             <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 text-right">
                                 <button type="button" onclick="saveAllFilledData()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-md font-semibold transition-colors shadow-sm inline-flex items-center">
                                     <i class="fas fa-save mr-2"></i>Simpan Hasil
@@ -169,7 +169,12 @@
 
         <div class="mt-8 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                <h2 class="text-lg font-semibold text-gray-700"><i class="fas fa-history mr-2 text-gray-500"></i>10 Hasil Opname Terbaru</h2>
+                <h2 class="text-lg font-semibold text-gray-700 flex items-center">
+                    <i class="fas fa-history mr-2 text-gray-500"></i>10 Hasil Opname Terbaru
+                    <button type="button" onclick="syncWithServer()" class="ml-3 text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md hover:bg-blue-200 transition-colors shadow-sm font-medium border border-blue-200">
+                        <i class="fas fa-sync-alt mr-1" id="sync-icon"></i>Sync Data
+                    </button>
+                </h2>
             </div>
             
             <div class="overflow-x-auto pb-4">
@@ -214,23 +219,17 @@
     </div>
 
     <script>
-        // Global State
         let opnameData = [];
         let mb52Data = [];
         let currentMatches = [];
         
-        // URL WEB APP GOOGLE APPS SCRIPT
-        const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFDcXICtvDTfQ43iuaobXBcZCPoYEKtKeUTiU2qGMvSSLqOYfBfcR609l12VFPbQY0eQ/exec";
+        const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUrw4Ydcbj3Cz-m4F9_ivRGmnrE6gs12Pv67FikBxE98z6Y5InLLoQFW3CRhxaxeLK9w/exec";
         
         window.onload = function() {
             setInitialDateTime();
             loadSavedData();
             loadMB52Data();
-            
-            // Restore last input preferences
-            if(localStorage.getItem('last_shift')) document.getElementById('shift').value = localStorage.getItem('last_shift');
-            if(localStorage.getItem('last_plant')) document.getElementById('plant').value = localStorage.getItem('last_plant');
-            if(localStorage.getItem('last_pelaksana')) document.getElementById('pelaksana').value = localStorage.getItem('last_pelaksana');
+            syncWithServer();
         };
 
         function setInitialDateTime() {
@@ -242,10 +241,6 @@
             }
         }
 
-        function savePreference(key, value) {
-            localStorage.setItem(key, value);
-        }
-
         function loadSavedData() {
             const saved = localStorage.getItem('opname_data');
             if (saved) {
@@ -254,6 +249,57 @@
                     renderTable();
                 } catch(e) {
                     console.error("Error loading saved data", e);
+                }
+            }
+        }
+
+        function syncWithServer() {
+            if (!GOOGLE_APP_SCRIPT_URL) return;
+            
+            const syncIcon = document.getElementById('sync-icon');
+            const cloudStatus = document.getElementById('cloud-status');
+            
+            if(syncIcon) syncIcon.classList.add('fa-spin');
+            if(cloudStatus) {
+                cloudStatus.className = "bg-blue-800 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-blue-700 whitespace-nowrap";
+                cloudStatus.innerHTML = '<i class="fas fa-sync fa-spin text-blue-300 mr-1 sm:mr-2"></i><span class="text-blue-100 font-medium hidden sm:inline">Menyambungkan...</span><span class="text-blue-100 font-medium sm:hidden">Sync...</span>';
+            }
+
+            fetch(GOOGLE_APP_SCRIPT_URL)
+                .then(async res => {
+                    const text = await res.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch (err) {
+                        throw new Error("Respons bukan JSON. Anda harus Deploy ulang 'Versi Baru' di Apps Script.");
+                    }
+                })
+                .then(data => {
+                    if(syncIcon) syncIcon.classList.remove('fa-spin');
+                    if (data && Array.isArray(data)) {
+                        opnameData = data;
+                        localStorage.setItem('opname_data', JSON.stringify(opnameData));
+                        renderTable();
+                        
+                        if(cloudStatus) {
+                            cloudStatus.className = "bg-green-700 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-green-600 whitespace-nowrap";
+                            cloudStatus.innerHTML = '<i class="fas fa-cloud text-green-200 mr-1 sm:mr-2"></i><span class="text-green-100 font-medium hidden sm:inline">Online</span><span class="text-green-100 font-medium sm:hidden">Online</span>';
+                        }
+                    } else if (data && data.error) {
+                        console.error("Error Apps Script:", data.error);
+                        setLocalStatus();
+                    }
+                })
+                .catch(err => {
+                    if(syncIcon) syncIcon.classList.remove('fa-spin');
+                    console.warn("Gagal menarik data dari server, beralih ke data lokal:", err.message);
+                    setLocalStatus();
+                });
+                
+            function setLocalStatus() {
+                if(cloudStatus) {
+                    cloudStatus.className = "bg-gray-700 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-gray-600 whitespace-nowrap";
+                    cloudStatus.innerHTML = '<i class="fas fa-cloud text-gray-400 mr-1 sm:mr-2"></i><span class="text-gray-200 font-medium hidden sm:inline">Lokal (Aman)</span><span class="text-gray-200 font-medium sm:hidden">Lokal</span>';
                 }
             }
         }
@@ -338,7 +384,6 @@
                     statusEl.title = "Pastikan Share Google Sheet MB52 disetting 'Anyone with the link'";
                     statusEl.innerHTML = '<i class="fas fa-times-circle text-red-600 mr-1 sm:mr-2"></i><span class="text-red-800 font-medium hidden sm:inline">Akses Ditolak</span><span class="text-red-800 font-medium sm:hidden">Ditolak</span>';
                     
-                    // Tampilkan pesan error pop-up agar user tahu cara memperbaikinya
                     showMessage("Gagal memuat data pencarian MB52 dari Google Sheet.<br><br><b>Solusi:</b> Buka Google Sheet MB52 Anda, klik tombol <b>Bagikan (Share)</b>, lalu ubah Akses Umum menjadi <b>'Siapa saja yang memiliki link' (Anyone with the link)</b>.", "error");
                 }
             });
@@ -370,14 +415,12 @@
 
             document.getElementById('empty-search-state').style.display = 'none';
 
-            // Memfilter data berdasarkan Material, Desc, Mfr Part No, dan Storage Bin
             currentMatches = mb52Data.filter(row => {
                 const material = String(getValueFromRow(row, ['Material', 'Matnr']) || "").toUpperCase();
                 const desc = String(getValueFromRow(row, ['Material Description', 'Description', 'Material_Description', 'Desc']) || "").toUpperCase();
                 const mfr = String(getValueFromRow(row, ['Mfr Part Number', 'Mfr', 'Part Number', 'Part No']) || "").toUpperCase();
                 const bin = String(getValueFromRow(row, ['Storage Bin', 'SBin', 'Bin']) || "").toUpperCase();
                 
-                // Fitur Includes memungkinkan pencarian dengan mengetik sebagian kata/nomor saja
                 return material.includes(searchVal) || 
                        desc.includes(searchVal) || 
                        mfr.includes(searchVal) || 
@@ -499,19 +542,19 @@
                 
                 if (diff > 0) {
                     selisihCell.textContent = "+" + diff; 
-                    selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-green-600 bg-gray-50"; // Teks Hijau untuk plus
+                    selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-green-600 bg-gray-50";
                 } else if (diff < 0) {
                     selisihCell.textContent = diff;
-                    selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-red-600 bg-gray-50"; // Teks Merah untuk minus
+                    selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-red-600 bg-gray-50";
                 } else {
                     selisihCell.textContent = diff;
-                    selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-gray-800 bg-gray-50"; // Hitam netral untuk 0 balance
+                    selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-gray-800 bg-gray-50";
                 }
             }
         }
 
         function sendToGoogleSheet(record) {
-            if (!GOOGLE_APP_SCRIPT_URL || GOOGLE_APP_SCRIPT_URL === "TARUH_URL_APPS_SCRIPT_ANDA_DISINI") return;
+            if (!GOOGLE_APP_SCRIPT_URL) return;
 
             fetch(GOOGLE_APP_SCRIPT_URL, {
                 method: 'POST',
@@ -535,8 +578,6 @@
             const plant = document.getElementById('plant').value;
             const pelaksana = document.getElementById('pelaksana').value;
             const material = document.getElementById('material').value;
-            
-            // Mengambil isi catatan dari textarea yang baru
             const catatanForm = document.getElementById('catatan_input_form').value;
 
             if (!tanggal || !shift || !plant || !pelaksana || !material) {
@@ -549,7 +590,6 @@
                 
                 if (qtyAktualInput && qtyAktualInput.value !== "") {
                     const record = {
-                        id: Date.now().toString() + index.toString(),
                         tanggal: tanggal,
                         shift: shift,
                         plant: (tr.dataset.plant && tr.dataset.plant !== '-') ? tr.dataset.plant : plant,
@@ -569,11 +609,6 @@
                     };
 
                     opnameData.unshift(record);
-                    
-                    if (window.cloudSaveRecord) {
-                        window.cloudSaveRecord(record);
-                    }
-                    
                     sendToGoogleSheet(record);
                     savedCount++;
                 }
@@ -586,19 +621,11 @@
 
             localStorage.setItem('opname_data', JSON.stringify(opnameData));
 
-            // Reset Form Material & Catatan
             document.getElementById('material').value = '';
             document.getElementById('catatan_input_form').value = '';
-            
-            // Hapus isi form pelaksana
             document.getElementById('pelaksana').value = '';
-            localStorage.removeItem('last_pelaksana');
-
-            // Kosongkan pilihan Shift dan Plant
             document.getElementById('shift').value = '';
-            localStorage.removeItem('last_shift');
             document.getElementById('plant').value = '';
-            localStorage.removeItem('last_plant');
             
             document.getElementById('multi_results_container').classList.add('hidden');
             document.getElementById('empty-search-state').style.display = 'block';
@@ -606,7 +633,6 @@
 
             renderTable();
             
-            // Success Modal
             const modal = document.getElementById('custom-modal');
             document.getElementById('modal-title').textContent = 'Berhasil';
             document.getElementById('modal-icon').className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 text-green-600 mb-4';
@@ -641,9 +667,8 @@
                 
                 const selisihVal = parseFloat(row.selisih);
                 let displaySelisih = row.selisih;
-                let textColorClass = "text-gray-800"; // Default (Balance)
+                let textColorClass = "text-gray-800";
                 
-                // Setel format + dan penentuan warna text untuk riwayat
                 if(selisihVal > 0) {
                     if(!String(row.selisih).startsWith('+')) {
                         displaySelisih = "+" + selisihVal;
@@ -662,7 +687,7 @@
                 tr.innerHTML = `
                     <td class="px-4 py-3 text-center text-gray-500">${index + 1}</td>
                     <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-600">${formattedDate}</td>
-                    <td class="px-4 py-3 text-xs text-gray-600">${row.plant.split(' - ')[0]}</td>
+                    <td class="px-4 py-3 text-xs text-gray-600">${row.plant ? row.plant.split(' - ')[0] : '-'}</td>
                     <td class="px-4 py-3 font-bold text-blue-700">${row.material}</td>
                     <td class="px-4 py-3 text-gray-600 font-medium">${row.batch || '-'}</td>
                     <td class="px-4 py-3 text-right text-gray-500">${row.unrestricted}</td>
@@ -672,75 +697,6 @@
                 
                 tbody.appendChild(tr);
             });
-        }
-    </script>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'stock-opname-app-final';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const statusEl = document.getElementById('cloud-status');
-
-        if (!firebaseConfig) {
-            statusEl.className = "bg-gray-700 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-gray-600 whitespace-nowrap";
-            statusEl.innerHTML = '<i class="fas fa-mobile-alt text-blue-300 mr-1 sm:mr-2"></i><span class="text-gray-100 font-medium hidden sm:inline">Mode Lokal (Aman)</span><span class="text-gray-100 font-medium sm:hidden">Lokal</span>';
-        } else {
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const db = getFirestore(app);
-
-            async function initCloud() {
-                try {
-                    if (typeof __initial_auth_token !== 'undefined') {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    
-                    if (!auth.currentUser) return;
-                    
-                    statusEl.className = "bg-green-700 px-3 py-1 rounded-full text-sm flex items-center border border-green-600";
-                    statusEl.innerHTML = '<i class="fas fa-cloud-upload-alt text-green-300 mr-2"></i><span class="text-green-50 text-xs font-medium">Tersambung ke Cloud</span>';
-
-                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'opname_records');
-                    onSnapshot(colRef, (snapshot) => {
-                        const data = [];
-                        snapshot.forEach(d => {
-                            data.push({ id: d.id, ...d.data() });
-                        });
-                        
-                        data.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-                        
-                        window.opnameData = data;
-                        if (typeof window.renderTable === 'function') {
-                            window.renderTable();
-                        }
-                        
-                        localStorage.setItem('opname_data', JSON.stringify(data));
-                    }, (error) => {
-                        console.error("Sinkronisasi gagal:", error);
-                        statusEl.className = "bg-red-700 px-3 py-1 rounded-full text-sm flex items-center border border-red-600";
-                        statusEl.innerHTML = '<i class="fas fa-exclamation-circle text-red-300 mr-2"></i><span class="text-red-50 text-xs font-medium">Koneksi Cloud Terputus</span>';
-                    });
-                } catch (error) {
-                    console.error("Gagal menyambung ke Cloud", error);
-                }
-            }
-
-            window.cloudSaveRecord = async function(record) {
-                if (!auth.currentUser) return;
-                try {
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'opname_records', record.id.toString());
-                    await setDoc(docRef, record);
-                } catch(e) {
-                    console.error("Gagal simpan ke cloud", e);
-                }
-            };
-
-            initCloud();
         }
     </script>
 </body>
