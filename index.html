@@ -346,23 +346,25 @@
                 btnOk.focus();
             }, 10);
 
-            const closeModal = () => {
+            const closeAction = () => {
                 modalContent.classList.remove('scale-100', 'opacity-100');
                 modalContent.classList.add('scale-95', 'opacity-0');
                 setTimeout(() => modal.classList.add('hidden'), 200);
             };
 
             btnOk.onclick = () => {
-                closeModal();
+                closeAction();
                 if (onConfirm) onConfirm();
             };
-
-            btnCancel.onclick = closeModal;
         }
 
         function loadMB52Data() {
             const statusEl = document.getElementById('mb52-status');
-            const sheetUrl = 'https://docs.google.com/spreadsheets/d/1oee_y9aXf7UUL64zfyjayMcVa7RrEtEtAvmkE-SJARU/export?format=csv&gid=15384621';
+            
+            // Menggunakan endpoint gviz yang kebal terhadap pengalihan tampilan HP 
+            // dan menambahkan timestamp agar HP tidak membaca cache memori lama
+            const timestamp = new Date().getTime();
+            const sheetUrl = 'https://docs.google.com/spreadsheets/d/1oee_y9aXf7UUL64zfyjayMcVa7RrEtEtAvmkE-SJARU/gviz/tq?tqx=out:csv&gid=15384621&_cache=' + timestamp;
 
             Papa.parse(sheetUrl, {
                 download: true,
