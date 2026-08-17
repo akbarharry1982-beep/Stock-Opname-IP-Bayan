@@ -5,562 +5,737 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Stock Opname</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- PapaParse for reading Google Sheets CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .readonly-cell { background-color: transparent; border: none; outline: none; width: 100%; cursor: default; }
-        .table-input {
-            width: 100%;
-            border: 1px solid transparent;
-            padding: 2px 4px;
-            border-radius: 4px;
-            outline: none;
-            transition: all 0.2s;
-        }
-        .table-input:not([readonly]):focus {
-            border-color: #3b82f6;
-            background-color: #fff;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        }
-        .table-input:not([readonly]) {
-            border-color: #d1d5db;
-            background-color: #fff;
-        }
-        /* Menghilangkan panah pada input number */
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
+        .overflow-x-auto::-webkit-scrollbar { height: 8px; }
+        .overflow-x-auto::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .overflow-x-auto::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        .overflow-x-auto::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
     </style>
 </head>
-<body class="p-4 md:p-6 text-sm text-gray-800">
+<body class="text-gray-800 antialiased">
 
-    <div class="max-w-6xl mx-auto space-y-4">
-        
-        <!-- Header Section -->
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between gap-4">
-            <div class="flex-1 space-y-3">
-                <h1 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                    Stock Opname
-                </h1>
-                
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">Tanggal/Jam</label>
-                        <input type="text" id="dateTime" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg px-3 py-2" readonly>
+    <nav class="bg-blue-700 text-white shadow-md mb-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <i class="fas fa-boxes text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold">Aplikasi Stock Opname</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div id="cloud-status" class="bg-gray-700 px-3 py-1 rounded-full text-sm flex items-center border border-gray-600" title="Status Penyimpanan Cloud">
+                        <i class="fas fa-cloud text-gray-300 mr-2"></i>
+                        <span class="text-gray-100 text-xs font-medium">Menyambungkan...</span>
                     </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">Shift</label>
-                        <select id="shift" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="DS">DS (Day Shift)</option>
-                            <option value="NS">NS (Night Shift)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">Plant</label>
-                        <select id="plant" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="PL01 - MSJ">PL01 - MSJ</option>
-                            <option value="PL02 - TDM">PL02 - TDM</option>
-                            <option value="PL03 - SBB">PL03 - SBB</option>
-                            <option value="PL04 - AGM">PL04 - AGM</option>
-                            <option value="PL05 - PMSS">PL05 - PMSS</option>
-                            <option value="PL06 - MAS">PL06 - MAS</option>
-                            <option value="PL07 - CMX MSJ">PL07 - CMX MSJ</option>
-                            <option value="PL08 - CMX PLRN">PL08 - CMX PLRN</option>
-                            <option value="PL09 - CMX AGM">PL09 - CMX AGM</option>
-                            <option value="PL10 - BSSR 2">PL10 - BSSR 2</option>
-                            <option value="PL11 - PKM">PL11 - PKM</option>
-                            <option value="PL12 - SMD">PL12 - SMD</option>
-                            <option value="PL13 - JKT">PL13 - JKT</option>
-                            <option value="PL14 - KUP">PL14 - KUP</option>
-                            <option value="PL15 - TAJ">PL15 - TAJ</option>
-                            <option value="PL16 - MME">PL16 - MME</option>
-                            <option value="PL17 - MBL MINNING">PL17 - MBL MINNING</option>
-                            <option value="PL18 - CMX MAS">PL18 - CMX MAS</option>
-                            <option value="PL19 - CMX CILEGON">PL19 - CMX CILEGON</option>
-                            <option value="PL20 - SAS">PL20 - SAS</option>
-                            <option value="PL21 - BSEE">PL21 - BSEE</option>
-                            <option value="PL22 - BRN">PL22 - BRN</option>
-                            <option value="PL23 - KUD">PL23 - KUD</option>
-                            <option value="PL24 - BYN">PL24 - BYN</option>
-                            <option value="PL25 - CDI">PL25 - CDI</option>
-                            <option value="PL26 - MHU">PL26 - MHU</option>
-                            <option value="PL27 - MBL HAULING">PL27 - MBL HAULING</option>
-                            <option value="PL28 - DC PLRN">PL28 - DC PLRN</option>
-                            <option value="PL31 - MHU">PL31 - MHU</option>
-                            <option value="PL32 - MHU">PL32 - MHU</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 mb-1">Pelaksana</label>
-                        <input type="text" id="pelaksana" placeholder="Nama Pelaksana" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+                    <div id="mb52-status" class="bg-blue-800 px-3 py-1 rounded-full text-sm flex items-center border border-blue-600">
+                        <i class="fas fa-circle-notch fa-spin text-yellow-400 mr-2"></i>
+                        <span class="text-gray-100 text-xs font-medium">Memuat MB52...</span>
                     </div>
                 </div>
-                
-                <!-- Kolom Catatan Tambahan -->
-                <div class="mt-3">
-                    <label class="block text-xs font-semibold text-gray-500 mb-1">Catatan / Keterangan (Opsional)</label>
-                    <input type="text" id="catatan" placeholder="Tambahkan catatan opname jika ada..." class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-xl shadow-md p-5 border border-gray-100">
+                    <h2 class="text-base font-semibold text-gray-700 mb-4 border-b pb-2"><i class="fas fa-info-circle mr-2 text-blue-600"></i>Informasi Umum</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal/Jam</label>
+                            <input type="datetime-local" id="tanggal" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Shift</label>
+                            <select id="shift" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm" onchange="savePreference('last_shift', this.value)">
+                                <option value="">Pilih Shift</option>
+                                <option value="DS">DS (Day Shift)</option>
+                                <option value="NS">NS (Night Shift)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Plant</label>
+                            <select id="plant" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm" onchange="savePreference('last_plant', this.value)">
+                                <option value="">Pilih Plant</option>
+                                <option value="PL01 - MSJ">PL01 - MSJ</option>
+                                <option value="PL02 - TDM">PL02 - TDM</option>
+                                <option value="PL03 - SBB">PL03 - SBB</option>
+                                <option value="PL04 - AGM">PL04 - AGM</option>
+                                <option value="PL05 - PMSS">PL05 - PMSS</option>
+                                <option value="PL06 - MAS">PL06 - MAS</option>
+                                <option value="PL07 - CMX MSJ">PL07 - CMX MSJ</option>
+                                <option value="PL08 - CMX PLRN">PL08 - CMX PLRN</option>
+                                <option value="PL09 - CMX AGM">PL09 - CMX AGM</option>
+                                <option value="PL10 - BSSR 2">PL10 - BSSR 2</option>
+                                <option value="PL11 - PKM">PL11 - PKM</option>
+                                <option value="PL12 - SMD">PL12 - SMD</option>
+                                <option value="PL13 - JKT">PL13 - JKT</option>
+                                <option value="PL14 - KUP">PL14 - KUP</option>
+                                <option value="PL15 - TAJ">PL15 - TAJ</option>
+                                <option value="PL16 - MME">PL16 - MME</option>
+                                <option value="PL17 - MBL MINNING">PL17 - MBL MINNING</option>
+                                <option value="PL18 - CMX MAS">PL18 - CMX MAS</option>
+                                <option value="PL19 - CMX CILEGON">PL19 - CMX CILEGON</option>
+                                <option value="PL20 - SAS">PL20 - SAS</option>
+                                <option value="PL21 - BSEE">PL21 - BSEE</option>
+                                <option value="PL22 - BRN">PL22 - BRN</option>
+                                <option value="PL23 - KUD">PL23 - KUD</option>
+                                <option value="PL24 - BYN">PL24 - BYN</option>
+                                <option value="PL25 - CDI">PL25 - CDI</option>
+                                <option value="PL26 - MHU">PL26 - MHU</option>
+                                <option value="PL27 - MBL HAULING">PL27 - MBL HAULING</option>
+                                <option value="PL28 - DC PLRN">PL28 - DC PLRN</option>
+                                <option value="PL31 - MHU">PL31 - MHU</option>
+                                <option value="PL32 - MHU">PL32 - MHU</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pelaksana</label>
+                            <input type="text" id="pelaksana" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Nama pelaksana..." oninput="savePreference('last_pelaksana', this.value)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-9">
+                <div class="bg-white rounded-xl shadow-md p-5 border border-gray-100 min-h-[400px]">
+                    <h2 class="text-base font-semibold text-gray-700 mb-4 border-b pb-2"><i class="fas fa-barcode mr-2 text-blue-600"></i>Pencarian Material</h2>
+                    
+                    <div class="flex gap-2 mb-6">
+                        <div class="flex-grow">
+                            <input type="text" id="material" class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-lg uppercase tracking-wider" placeholder="Ketik atau Scan Material..." onkeypress="handleEnter(event)">
+                        </div>
+                        <button type="button" onclick="searchMaterial()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm whitespace-nowrap">
+                            <i class="fas fa-search mr-2"></i>Cari
+                        </button>
+                    </div>
+
+                    <div id="multi_results_container" class="hidden">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
+                            <div class="px-4 py-3 bg-blue-100/50 border-b border-blue-200 flex justify-between items-center">
+                                <h3 class="text-sm font-bold text-blue-800">Ditemukan Stock. Silakan isi Qty Aktual & Simpan:</h3>
+                                <span id="match_count" class="text-xs font-semibold bg-blue-200 text-blue-800 px-2 py-1 rounded-full"></span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm border-collapse min-w-[800px]">
+                                    <thead>
+                                        <tr class="bg-blue-50 text-blue-800 text-xs uppercase tracking-wider border-b border-blue-200">
+                                            <th class="px-3 py-2 font-semibold">Material Description</th>
+                                            <th class="px-3 py-2 font-semibold">Mfr Part Number</th>
+                                            <th class="px-3 py-2 font-semibold">Bin</th>
+                                            <th class="px-3 py-2 font-semibold">Batch</th>
+                                            <th class="px-3 py-2 font-semibold">UoM</th>
+                                            <th class="px-3 py-2 font-semibold text-right">Qty Sistem</th>
+                                            <th class="px-3 py-2 font-semibold text-center w-32">Qty Aktual</th>
+                                            <th class="px-3 py-2 font-semibold text-right w-24">Selisih</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="multi_results_body" class="divide-y divide-blue-100 bg-white">
+                                        <!-- Hasil render list material akan muncul disini -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="p-4 bg-yellow-50 border-t border-yellow-200">
+                                <label for="catatan_input_form" class="block text-sm font-bold text-yellow-800 mb-2">
+                                    <i class="fas fa-edit mr-2"></i>Catatan Tambahan (Opsional)
+                                </label>
+                                <textarea id="catatan_input_form" rows="2" class="w-full border border-yellow-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-500 bg-white" placeholder="Ketik catatan di sini (misal: barang rusak, terselip) sebelum klik Simpan..."></textarea>
+                            </div>
+
+                            <!-- Tombol Simpan Utama -->
+                            <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 text-right">
+                                <button type="button" onclick="saveAllFilledData()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-md font-semibold transition-colors shadow-sm inline-flex items-center">
+                                    <i class="fas fa-save mr-2"></i>Simpan Hasil
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="empty-search-state" class="text-center py-12 text-gray-400">
+                        <i class="fas fa-box-open text-5xl mb-4 text-gray-200"></i>
+                        <p class="text-sm">Scan atau cari material untuk mulai mengisi aktual stok.</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Table Section -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gray-50/50">
-                <div class="flex items-center gap-3">
-                    <h2 class="font-semibold text-gray-700">Daftar Material</h2>
-                    <span id="dbStatus" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-yellow-100 text-yellow-800">
-                        <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        Memuat Database...
-                    </span>
-                </div>
-                
-                <div class="relative w-full sm:w-64">
-                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
-                    </div>
-                    <input type="text" id="scanInput" class="block w-full p-2 pl-9 text-sm text-gray-900 border border-blue-300 rounded-lg bg-blue-50 focus:ring-blue-500 focus:border-blue-500 font-medium placeholder-gray-400" placeholder="Scan/Input Material & Enter..." autocomplete="off">
-                </div>
+        <div class="mt-8 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-gray-700"><i class="fas fa-history mr-2 text-gray-500"></i>10 Hasil Opname Terbaru</h2>
             </div>
             
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="text-[11px] text-gray-700 uppercase bg-gray-100 border-b">
-                        <tr>
-                            <th class="px-2 py-1.5 w-8 text-center">No</th>
-                            <th class="px-2 py-1.5 min-w-[140px]">Material</th>
-                            <th class="px-2 py-1.5 min-w-[250px]">Material Description</th>
-                            <th class="px-2 py-1.5 min-w-[150px]">Mfr Part Number</th>
-                            <th class="px-2 py-1.5 min-w-[90px]">SLoc</th>
-                            <th class="px-2 py-1.5 min-w-[140px]">Storage Bin</th>
-                            <th class="px-2 py-1.5 min-w-[110px]">Batch</th>
-                            <th class="px-2 py-1.5 w-20 text-right bg-blue-50">Unres</th>
-                            <th class="px-2 py-1.5 w-20 text-right bg-green-50">Aktual</th>
-                            <th class="px-2 py-1.5 w-20 text-right font-bold">Selisih</th>
+            <div class="overflow-x-auto pb-4">
+                <table class="w-full text-left border-collapse min-w-[700px]">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider">
+                            <th class="px-4 py-3 font-semibold border-b w-10">No</th>
+                            <th class="px-4 py-3 font-semibold border-b w-32">Waktu</th>
+                            <th class="px-4 py-3 font-semibold border-b w-24">Plant</th>
+                            <th class="px-4 py-3 font-semibold border-b">Material</th>
+                            <th class="px-4 py-3 font-semibold border-b">Batch</th>
+                            <th class="px-4 py-3 font-semibold border-b text-right">Qty Sistem</th>
+                            <th class="px-4 py-3 font-semibold border-b text-right">Qty Aktual</th>
+                            <th class="px-4 py-3 font-semibold border-b text-right">Selisih</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="text-[11px]">
-                        <!-- Baris akan ditambahkan di sini -->
+                    <tbody id="table-body" class="text-sm text-gray-700">
+                        <!-- History data akan muncul disini -->
                     </tbody>
                 </table>
-            </div>
-            
-            <!-- Tombol Simpan di bawah tabel -->
-            <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-                <button id="btnSave" onclick="saveData()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                    <svg id="iconSave" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                    <svg id="iconLoading" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span id="textSave">Simpan Data</span>
-                </button>
+                <div id="empty-state" class="text-center py-8 text-gray-500">
+                    <p>Belum ada riwayat opname tersimpan.</p>
+                </div>
             </div>
         </div>
-
-        <!-- History Section -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-4 border-b border-gray-100 bg-gray-50/50">
-                <h2 class="font-semibold text-gray-700">Riwayat Data Tersimpan</h2>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="text-[11px] text-gray-700 uppercase bg-gray-100 border-b">
-                        <tr>
-                            <th class="px-3 py-2 w-28">Waktu</th>
-                            <th class="px-3 py-2">Material</th>
-                            <th class="px-3 py-2">Pelaksana</th>
-                            <th class="px-3 py-2 w-16">Shift</th>
-                            <th class="px-3 py-2">Plant</th>
-                            <th class="px-3 py-2">Catatan</th>
-                            <th class="px-3 py-2">Batch</th>
-                            <th class="px-3 py-2 w-20 text-right">Unres</th>
-                            <th class="px-3 py-2 w-20 text-right">Aktual</th>
-                            <th class="px-3 py-2 w-20 text-right">Selisih</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyBody" class="text-[11px] text-gray-600 divide-y divide-gray-100">
-                        <!-- Baris riwayat akan ditambahkan di sini -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </div>
 
-    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 z-50 pointer-events-none">
-        <svg id="toastIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-        <div>
-            <p id="toastTitle" class="font-bold text-sm">Berhasil Disimpan!</p>
-            <p id="toastDesc" class="text-xs text-green-100">Data telah dikirim ke Google Sheets.</p>
+    <div id="custom-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50 transition-opacity">
+        <div class="bg-white rounded-xl shadow-lg max-w-sm w-full mx-4 p-6 transform transition-all scale-95 opacity-0" id="custom-modal-content">
+            <div class="text-center">
+                <div id="modal-icon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4"></div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Pemberitahuan</h3>
+                <div class="mt-2 text-left w-full">
+                    <div class="text-sm text-gray-500 w-full" id="modal-message"></div>
+                </div>
+            </div>
+            <div class="mt-5 flex gap-3 justify-center">
+                <button type="button" id="modal-btn-cancel" class="hidden mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:text-sm">Batal</button>
+                <button type="button" id="modal-btn-ok" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white sm:text-sm">OK</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // URL DEPLOY WEB APP DARI GOOGLE APPS SCRIPT
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbywTVMNtEir1xa1Ywxh6b8BvLLQgAD1K-uz9RKutAH_HeQLRIBKr5VwtrEwjRFsMg91/exec"; 
-
-        // Konstanta Database Sheet MB52
-        const DB_URL = "https://docs.google.com/spreadsheets/d/1MX28Ep8ZHH2Sznb5Tbj0xVzAw06p5-Ndw0C_kIBt86M/export?format=csv&gid=932596458";
+        // Global State
+        let opnameData = [];
         let mb52Data = [];
-
-        function updateDateTime() {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('dateTime').value = `${dateStr} ${timeStr}`;
-        }
-        setInterval(updateDateTime, 1000);
-        updateDateTime();
-
-        function loadDatabase() {
-            Papa.parse(DB_URL, {
-                download: true,
-                complete: function(results) {
-                    const rows = results.data;
-                    if(rows.length < 2) return;
-                    
-                    let headerIndex = 0;
-                    for(let i=0; i<Math.min(10, rows.length); i++) {
-                        let rowStr = rows[i].join("").toLowerCase();
-                        if(rowStr.includes("material") && rowStr.includes("unrestricted")) {
-                            headerIndex = i; break;
-                        }
-                    }
-
-                    const headers = rows[headerIndex].map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
-                    const mapCol = (keyword) => headers.findIndex(h => h.includes(keyword));
-
-                    const colMat = mapCol("material");
-                    const colDesc = mapCol("description");
-                    const colMfr = mapCol("mfrpart");
-                    const colSLoc = mapCol("sloc") !== -1 ? mapCol("sloc") : mapCol("storagelocation");
-                    const colBin = mapCol("storagebin") !== -1 ? mapCol("storagebin") : mapCol("bin");
-                    const colBatch = mapCol("batch");
-                    const colUnres = mapCol("unrestricted");
-
-                    mb52Data = [];
-                    for(let i = headerIndex + 1; i < rows.length; i++) {
-                        const row = rows[i];
-                        if(!row[colMat] || row[colMat].trim() === "") continue;
-
-                        mb52Data.push({
-                            material: row[colMat].trim(),
-                            materialNum: row[colMat].trim().replace(/^0+/, ''),
-                            desc: colDesc !== -1 ? row[colDesc] : "",
-                            mfr: colMfr !== -1 ? row[colMfr] : "",
-                            sloc: colSLoc !== -1 ? row[colSLoc] : "",
-                            bin: colBin !== -1 ? row[colBin] : "",
-                            batch: colBatch !== -1 ? row[colBatch] : "",
-                            unres: colUnres !== -1 ? (parseFloat(row[colUnres].replace(/,/g, '')) || 0) : 0
-                        });
-                    }
-
-                    const statusBadge = document.getElementById('dbStatus');
-                    statusBadge.className = "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-green-100 text-green-800";
-                    statusBadge.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> DB Terhubung (${mb52Data.length} item)`;
-                },
-                error: function(err) {
-                    const statusBadge = document.getElementById('dbStatus');
-                    statusBadge.className = "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-red-100 text-red-800";
-                    statusBadge.innerHTML = `DB Gagal Dimuat`;
-                    console.error("Gagal memuat DB:", err);
-                }
-            });
-        }
+        let currentMatches = [];
         
-        loadDatabase();
-        loadHistory();
+        // URL WEB APP GOOGLE APPS SCRIPT
+        const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxg8uyEYAcaM19_GT8JKmBwFZRbdE_LPwpiqtlZSmTPPhauPUqEonaGopMHLHr_MY5H/exec";
+        
+        window.onload = function() {
+            setInitialDateTime();
+            loadSavedData();
+            loadMB52Data();
+            
+            // Restore last input preferences
+            if(localStorage.getItem('last_shift')) document.getElementById('shift').value = localStorage.getItem('last_shift');
+            if(localStorage.getItem('last_plant')) document.getElementById('plant').value = localStorage.getItem('last_plant');
+            if(localStorage.getItem('last_pelaksana')) document.getElementById('pelaksana').value = localStorage.getItem('last_pelaksana');
+        };
 
-        function lookupMaterial(code) {
-            const cleanCode = code.trim();
-            const numCode = cleanCode.replace(/^0+/, '');
-            return mb52Data.filter(item => item.material === cleanCode || item.materialNum === numCode);
+        function setInitialDateTime() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const tanggalEl = document.getElementById('tanggal');
+            if(tanggalEl) {
+                tanggalEl.value = now.toISOString().slice(0, 16);
+            }
         }
 
-        const scanInput = document.getElementById('scanInput');
-        scanInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const code = this.value.trim();
-                if(code) {
-                    document.getElementById('tableBody').innerHTML = '';
-                    const foundItems = lookupMaterial(code);
-                    
-                    if(foundItems.length > 0) {
-                        foundItems.forEach(data => addEmptyRow(data.material, data));
-                    } else {
-                        addEmptyRow(code, null);
-                    }
-                    
-                    this.value = '';
-                    const firstAktual = document.querySelector('.input-aktual');
-                    if(firstAktual) {
-                        firstAktual.focus();
-                        firstAktual.select();
-                    }
-                }
-            }
-        });
-
-        function addEmptyRow(materialCode = '', dbData = null) {
-            const tbody = document.getElementById('tableBody');
-            const rowCount = tbody.children.length + 1;
-            const tr = document.createElement('tr');
-            tr.className = "border-b hover:bg-gray-50 transition-colors group";
-            
-            tr.innerHTML = `
-                <td class="px-2 py-1 text-center text-gray-500 font-medium">${rowCount}</td>
-                <td class="px-2 py-1 align-top">
-                    <div class="input-material readonly-cell whitespace-normal break-words min-w-[140px] font-mono font-semibold text-gray-800"></div>
-                </td>
-                <td class="px-2 py-1 align-top">
-                    <div class="input-desc readonly-cell whitespace-normal break-words min-w-[250px] min-h-[20px] leading-tight text-gray-700"></div>
-                </td>
-                <td class="px-2 py-1 align-top">
-                    <div class="input-mfr readonly-cell whitespace-normal break-words min-w-[150px] min-h-[20px] leading-tight text-gray-700"></div>
-                </td>
-                <td class="px-2 py-1 align-top">
-                    <div class="input-sloc readonly-cell whitespace-normal break-words min-w-[90px] min-h-[20px] leading-tight text-gray-700"></div>
-                </td>
-                <td class="px-2 py-1 align-top">
-                    <div class="input-bin readonly-cell whitespace-normal break-words min-w-[140px] min-h-[20px] leading-tight text-gray-700"></div>
-                </td>
-                <td class="px-2 py-1 align-top">
-                    <div class="input-batch readonly-cell whitespace-normal break-words min-w-[110px] min-h-[20px] leading-tight text-gray-700"></div>
-                </td>
-                <td class="px-2 py-1 bg-blue-50 border-l border-r align-top">
-                    <input type="number" class="table-input input-unres text-right readonly-cell font-bold" readonly tabindex="-1" value="0">
-                </td>
-                <td class="px-2 py-1 bg-green-50 align-top">
-                    <input type="number" class="table-input input-aktual text-right font-bold text-blue-700" placeholder="0">
-                </td>
-                <td class="px-2 py-1 align-top">
-                    <div class="cell-selisih text-right font-bold text-gray-400 min-h-[20px] flex items-center justify-end"></div>
-                </td>
-            `;
-            
-            tbody.appendChild(tr);
-
-            if (dbData) {
-                tr.querySelector('.input-material').textContent = dbData.material;
-                tr.querySelector('.input-desc').textContent = dbData.desc;
-                tr.querySelector('.input-mfr').textContent = dbData.mfr;
-                tr.querySelector('.input-sloc').textContent = dbData.sloc;
-                tr.querySelector('.input-bin').textContent = dbData.bin;
-                tr.querySelector('.input-batch').textContent = dbData.batch;
-                tr.querySelector('.input-unres').value = dbData.unres;
-            } else {
-                tr.querySelector('.input-material').textContent = materialCode;
-            }
-            
-            const aktualInput = tr.querySelector('.input-aktual');
-            aktualInput.addEventListener('input', () => calculateSelisih(tr));
-            aktualInput.addEventListener('focus', function() { this.select(); });
-            
-            calculateSelisih(tr);
-            updateRowNumbers();
+        function savePreference(key, value) {
+            localStorage.setItem(key, value);
         }
 
-        function calculateSelisih(row) {
-            const unres = parseFloat(row.querySelector('.input-unres').value) || 0;
-            const aktualInput = row.querySelector('.input-aktual').value;
-            const selisihCell = row.querySelector('.cell-selisih');
-            
-            if(aktualInput === "") {
-                selisihCell.textContent = "";
-                selisihCell.className = 'cell-selisih text-right font-bold text-gray-400 min-h-[20px] flex items-center justify-end';
-            } else {
-                const aktual = parseFloat(aktualInput);
-                const selisih = aktual - unres;
-                
-                selisihCell.textContent = selisih > 0 ? `+${selisih}` : selisih;
-                
-                if (selisih === 0) {
-                    selisihCell.className = 'cell-selisih text-right font-bold text-green-600 min-h-[20px] flex items-center justify-end';
-                } else if (selisih > 0) {
-                    selisihCell.className = 'cell-selisih text-right font-bold text-green-600 bg-green-100 px-1 rounded min-h-[20px] flex items-center justify-end';
-                } else {
-                    selisihCell.className = 'cell-selisih text-right font-bold text-red-600 bg-red-100 px-1 rounded min-h-[20px] flex items-center justify-end';
+        function loadSavedData() {
+            const saved = localStorage.getItem('opname_data');
+            if (saved) {
+                try {
+                    opnameData = JSON.parse(saved);
+                    renderTable();
+                } catch(e) {
+                    console.error("Error loading saved data", e);
                 }
             }
         }
 
-        function updateRowNumbers() {
-            const trs = document.querySelectorAll('#tableBody tr');
-            trs.forEach((tr, index) => {
-                tr.children[0].textContent = index + 1;
-            });
-        }
+        function showMessage(message, type = 'info', onConfirm = null, title = null) {
+            const modal = document.getElementById('custom-modal');
+            const modalContent = document.getElementById('custom-modal-content');
+            const messageEl = document.getElementById('modal-message');
+            const titleEl = document.getElementById('modal-title');
+            const btnOk = document.getElementById('modal-btn-ok');
+            const btnCancel = document.getElementById('modal-btn-cancel');
+            const iconContainer = document.getElementById('modal-icon');
 
-        async function saveData() {
-            const dateTime = document.getElementById('dateTime').value;
-            const shift = document.getElementById('shift').value;
-            const plant = document.getElementById('plant').value;
-            const pelaksana = document.getElementById('pelaksana').value;
-            const catatan = document.getElementById('catatan').value;
-            
-            const trs = document.querySelectorAll('#tableBody tr');
-            if(trs.length === 0) return;
+            messageEl.innerHTML = message;
+            titleEl.textContent = title || 'Pemberitahuan';
 
-            let validItemCount = 0;
-            let currentItemsToSave = [];
-            
-            trs.forEach((tr) => {
-                const material = tr.querySelector('.input-material').textContent.trim();
-                if(!material) return; 
-                
-                validItemCount++;
-                const batch = tr.querySelector('.input-batch').textContent;
-                const unres = tr.querySelector('.input-unres').value;
-                const aktual = tr.querySelector('.input-aktual').value;
-                const selisih = tr.querySelector('.cell-selisih').textContent;
-                
-                currentItemsToSave.push({
-                    batch: batch,
-                    unres: unres,
-                    aktual: aktual,
-                    selisih: selisih
-                });
-            });
+            btnCancel.classList.add('hidden');
+            btnOk.onclick = null;
+            btnCancel.onclick = null;
+            iconContainer.className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4';
+            iconContainer.innerHTML = '';
 
-            if(validItemCount === 0) return;
-            
-            const cleanMaterial = document.querySelector('.input-material').textContent.trim();
-            const payload = {
-                waktu: dateTime,
-                shift: shift,
-                plant: plant,
-                pelaksana: pelaksana || 'Tanpa Nama',
-                catatan: catatan || '-',
-                material: cleanMaterial,
-                items: currentItemsToSave
+            if (type === 'warning') {
+                iconContainer.classList.add('bg-yellow-100', 'text-yellow-600');
+                iconContainer.innerHTML = '<i class="fas fa-exclamation-triangle text-xl"></i>';
+                btnOk.className = 'w-full inline-flex justify-center rounded-md px-4 py-2 bg-yellow-500 text-white font-medium hover:bg-yellow-600 sm:text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500';
+                btnOk.textContent = 'OK';
+            } else if (type === 'error') {
+                iconContainer.classList.add('bg-red-100', 'text-red-600');
+                iconContainer.innerHTML = '<i class="fas fa-times text-xl"></i>';
+                btnOk.className = 'w-full inline-flex justify-center rounded-md px-4 py-2 bg-red-600 text-white font-medium hover:bg-red-700 sm:text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500';
+                btnOk.textContent = 'Tutup';
+            } else {
+                iconContainer.classList.add('bg-blue-100', 'text-blue-600');
+                iconContainer.innerHTML = '<i class="fas fa-info text-xl"></i>';
+                btnOk.className = 'w-full inline-flex justify-center rounded-md px-4 py-2 bg-blue-600 text-white font-medium hover:bg-blue-700 sm:text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+                btnOk.textContent = 'OK';
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+                btnOk.focus();
+            }, 10);
+
+            const closeModal = () => {
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => modal.classList.add('hidden'), 200);
             };
 
-            const btnSave = document.getElementById('btnSave');
-            const iconSave = document.getElementById('iconSave');
-            const iconLoading = document.getElementById('iconLoading');
-            const textSave = document.getElementById('textSave');
+            btnOk.onclick = () => {
+                closeModal();
+                if (onConfirm) onConfirm();
+            };
 
-            btnSave.disabled = true;
-            iconSave.classList.add('hidden');
-            iconLoading.classList.remove('hidden');
-            textSave.textContent = "Mengirim...";
+            btnCancel.onclick = closeModal;
+        }
 
-            try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await response.json();
-                if (result.status === 'error') {
-                    throw new Error(result.message);
+        function loadMB52Data() {
+            const statusEl = document.getElementById('mb52-status');
+            const sheetUrl = 'https://docs.google.com/spreadsheets/d/1oee_y9aXf7UUL64zfyjayMcVa7RrEtEtAvmkE-SJARU/export?format=csv&gid=15384621';
+
+            Papa.parse(sheetUrl, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    if(results.data && results.data.length > 0) {
+                        mb52Data = results.data;
+                        statusEl.className = "bg-green-100 px-3 py-1 rounded-full text-sm flex items-center border border-green-300";
+                        statusEl.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-2"></i><span class="text-green-800 font-medium">MB52 Siap ('+mb52Data.length+')</span>';
+                    } else {
+                        statusEl.className = "bg-red-100 px-3 py-1 rounded-full text-sm flex items-center border border-red-300";
+                        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle text-red-600 mr-2"></i><span class="text-red-800 font-medium">Data Kosong</span>';
+                    }
+                },
+                error: function(error) {
+                    console.error("Error loading MB52:", error);
+                    statusEl.className = "bg-red-100 px-3 py-1 rounded-full text-sm flex items-center border border-red-300";
+                    statusEl.innerHTML = '<i class="fas fa-times-circle text-red-600 mr-2"></i><span class="text-red-800 font-medium">Gagal Load CSV</span>';
                 }
-
-                saveToHistory(dateTime, pelaksana, shift, plant, catatan, currentItemsToSave, cleanMaterial);
-                showToast("Berhasil Terkirim!", "Data telah dicatat ke Google Sheets & Riwayat lokal.", true);
-                
-                document.getElementById('tableBody').innerHTML = '';
-                document.getElementById('scanInput').focus();
-                document.getElementById('pelaksana').value = '';
-                document.getElementById('catatan').value = '';
-
-            } catch (error) {
-                console.error("Gagal mengirim data:", error);
-                showToast("Gagal Mengirim!", "Terjadi kesalahan koneksi internet atau server.", false);
-            } finally {
-                btnSave.disabled = false;
-                iconSave.classList.remove('hidden');
-                iconLoading.classList.add('hidden');
-                textSave.textContent = "Simpan Data";
-            }
-        }
-
-        function showToast(title, desc, isSuccess) {
-            const toast = document.getElementById('toast');
-            const toastTitle = document.getElementById('toastTitle');
-            const toastDesc = document.getElementById('toastDesc');
-            const toastIcon = document.getElementById('toastIcon');
-
-            toastTitle.textContent = title;
-            toastDesc.textContent = desc;
-
-            if (isSuccess) {
-                toast.classList.replace('bg-red-600', 'bg-green-600');
-                toastDesc.classList.replace('text-red-100', 'text-green-100');
-                toastIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>`;
-            } else {
-                toast.classList.replace('bg-green-600', 'bg-red-600');
-                toastDesc.classList.replace('text-green-100', 'text-red-100');
-                toastIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>`;
-            }
-
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 4000);
-        }
-
-        function saveToHistory(waktu, pelaksana, shift, plant, catatan, items, title) {
-            let history = JSON.parse(localStorage.getItem('so_history') || '[]');
-            
-            history.unshift({
-                id: Date.now(),
-                waktu: waktu,
-                pelaksana: pelaksana || 'Tanpa Nama',
-                shift: shift,
-                plant: plant,
-                catatan: catatan || '-',
-                items: items,
-                title: title
             });
-
-            history = history.slice(0, 10);
-            localStorage.setItem('so_history', JSON.stringify(history));
-            loadHistory();
         }
 
-        function loadHistory() {
-            const history = JSON.parse(localStorage.getItem('so_history') || '[]');
-            const tbody = document.getElementById('historyBody');
-            tbody.innerHTML = '';
+        function handleEnter(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchMaterial();
+            }
+        }
 
-            if(history.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" class="px-3 py-4 text-center text-gray-400">Belum ada riwayat penyimpanan.</td></tr>`;
+        function getValueFromRow(dataRow, keys) {
+            for(let k of keys) {
+                const foundKey = Object.keys(dataRow).find(rowKey => rowKey.toLowerCase().trim() === k.toLowerCase());
+                if(foundKey && dataRow[foundKey]) return dataRow[foundKey];
+            }
+            return "";
+        }
+
+        function searchMaterial() {
+            const searchVal = document.getElementById('material').value.trim().toUpperCase();
+            if (!searchVal) return;
+            
+            if (mb52Data.length === 0) {
+                showMessage("Data MB52 belum termuat, pastikan koneksi internet stabil.", "warning");
                 return;
             }
 
-            history.forEach((h) => {
-                const itemsToRender = h.items || [{batch: '-', unres: '-', aktual: '-', selisih: '-'}];
-                
-                itemsToRender.forEach((item) => {
-                    const tr = document.createElement('tr');
-                    
-                    let selisihHTML = item.selisih;
-                    let sVal = parseFloat(item.selisih);
-                    if(!isNaN(sVal)) {
-                        if (sVal === 0) selisihHTML = `<span class="text-green-600 font-bold">${item.selisih}</span>`;
-                        else if (sVal > 0) selisihHTML = `<span class="text-green-600 font-bold bg-green-100 px-1 rounded">${item.selisih}</span>`;
-                        else if (sVal < 0) selisihHTML = `<span class="text-red-600 font-bold bg-red-100 px-1 rounded">${item.selisih}</span>`;
-                    }
+            document.getElementById('empty-search-state').style.display = 'none';
 
-                    tr.innerHTML = `
-                        <td class="px-3 py-2 whitespace-nowrap">${h.waktu}</td>
-                        <td class="px-3 py-2 font-bold text-blue-700">${h.title || '-'}</td>
-                        <td class="px-3 py-2">${h.pelaksana}</td>
-                        <td class="px-3 py-2">${h.shift}</td>
-                        <td class="px-3 py-2 font-mono text-xs text-gray-500">${h.plant || '-'}</td>
-                        <td class="px-3 py-2 text-gray-500 italic">${h.catatan || '-'}</td>
-                        <td class="px-3 py-2 font-mono text-xs">${item.batch || '-'}</td>
-                        <td class="px-3 py-2 text-right">${item.unres}</td>
-                        <td class="px-3 py-2 text-right font-bold text-blue-700">${item.aktual}</td>
-                        <td class="px-3 py-2 text-right">${selisihHTML}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+            // Memfilter data berdasarkan Material, Desc, Mfr Part No, dan Storage Bin
+            currentMatches = mb52Data.filter(row => {
+                const material = String(getValueFromRow(row, ['Material', 'Matnr']) || "").toUpperCase();
+                const desc = String(getValueFromRow(row, ['Material Description', 'Description', 'Material_Description', 'Desc']) || "").toUpperCase();
+                const mfr = String(getValueFromRow(row, ['Mfr Part Number', 'Mfr', 'Part Number', 'Part No']) || "").toUpperCase();
+                const bin = String(getValueFromRow(row, ['Storage Bin', 'SBin', 'Bin']) || "").toUpperCase();
+                
+                // Fitur Includes memungkinkan pencarian dengan mengetik sebagian kata/nomor saja
+                return material.includes(searchVal) || 
+                       desc.includes(searchVal) || 
+                       mfr.includes(searchVal) || 
+                       bin.includes(searchVal);
             });
+
+            const matchCount = document.getElementById('match_count');
+            
+            if (currentMatches.length === 0) {
+                matchCount.textContent = 'Input Manual (Tidak Ditemukan)';
+                renderSearchTable([{
+                    'Material Description': '-',
+                    'Mfr Part Number': '-',
+                    'Storage Bin': '-',
+                    'Batch': '-',
+                    'Base Unit of Measure': '-',
+                    'Unrestricted': '0'
+                }]);
+
+                showMessage(`
+                    <div class="text-left bg-yellow-50 p-3 rounded-lg border border-yellow-200 mt-2">
+                        <p class="text-sm font-bold text-yellow-800 mb-1">Material: ${searchVal}</p>
+                        <p class="text-xs text-yellow-700">Tidak ditemukan di Sheet MB52. Silakan isi form aktual secara manual.</p>
+                    </div>
+                `, 'warning', focusAktual, 'Perhatian');
+            } else {
+                matchCount.textContent = currentMatches.length + ' Data Lokasi/Batch';
+                renderSearchTable(currentMatches);
+
+                const firstMatch = currentMatches[0];
+                const desc = getValueFromRow(firstMatch, ['Material Description', 'Description', 'Material_Description', 'Desc']) || '-';
+                const mfr = getValueFromRow(firstMatch, ['Mfr Part Number', 'Mfr', 'Part Number', 'Part No']) || '-';
+                
+                showMessage(`
+                    <div class="text-left bg-blue-50 p-4 rounded-lg border border-blue-200 mt-2 text-gray-800">
+                        <div class="mb-3 pb-2 border-b border-blue-200">
+                            <span class="block text-xs font-bold text-blue-500 uppercase">Material</span>
+                            <span class="font-bold text-lg text-blue-900">${searchVal}</span>
+                        </div>
+                        <div class="mb-3">
+                            <span class="block text-xs font-bold text-gray-500 uppercase">Description</span>
+                            <span class="font-medium text-sm">${desc}</span>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-gray-500 uppercase">Mfr Part Number</span>
+                            <span class="font-medium text-sm">${mfr}</span>
+                        </div>
+                    </div>
+                `, 'info', focusAktual, 'Detail Material');
+            }
+        }
+        
+        function focusAktual() {
+            setTimeout(() => {
+                const firstInput = document.querySelector('#multi_results_body input[type="number"]');
+                if(firstInput) {
+                    firstInput.focus();
+                    firstInput.select();
+                }
+            }, 100);
+        }
+
+        function renderSearchTable(matches) {
+            const tbody = document.getElementById('multi_results_body');
+            tbody.innerHTML = '';
+            
+            matches.forEach((row, idx) => {
+                const desc = getValueFromRow(row, ['Material Description', 'Description', 'Material_Description', 'Desc']);
+                const mfr = getValueFromRow(row, ['Mfr Part Number', 'Mfr', 'Part Number', 'Part No']);
+                const bin = getValueFromRow(row, ['Storage Bin', 'SBin', 'Bin']);
+                const batch = getValueFromRow(row, ['Batch', 'Charg']);
+                let qtySistem = getValueFromRow(row, ['Unrestricted', 'Qty', 'Quantity', 'Stock']);
+                qtySistem = (qtySistem.replace(/[^0-9.-]+/g, "") || "0");
+                
+                const type = getValueFromRow(row, ['Material Type', 'MTart', 'Type']);
+                const loc = getValueFromRow(row, ['Storage Location', 'SLoc', 'Lgort', 'Location']);
+                const uom = getValueFromRow(row, ['Base Unit of Measure', 'BUn', 'UOM', 'Unit']);
+                const plant = getValueFromRow(row, ['Plant', 'Plnt', 'Werks']);
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 transition-colors group";
+                
+                tr.dataset.isDataRow = "true";
+                tr.dataset.type = type || '-';
+                tr.dataset.loc = loc || '-';
+                tr.dataset.plant = plant || '';
+                tr.dataset.sistem = qtySistem;
+
+                tr.innerHTML = `
+                    <td class="px-3 py-2 font-medium text-gray-800 text-xs">${desc || '-'}</td>
+                    <td class="px-3 py-2 text-gray-600">${mfr || '-'}</td>
+                    <td class="px-3 py-2 text-gray-800 font-semibold">${bin || '-'}</td>
+                    <td class="px-3 py-2 text-gray-600">${batch || '-'}</td>
+                    <td class="px-3 py-2 text-gray-500">${uom || '-'}</td>
+                    <td class="px-3 py-2 text-right font-medium text-gray-800 bg-gray-50">${qtySistem}</td>
+                    <td class="px-3 py-2">
+                        <input type="number" class="w-full border border-blue-400 rounded-md px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold text-blue-800" placeholder="Aktual" oninput="calcRowSelisih(this)">
+                    </td>
+                    <td class="px-3 py-2 text-right font-bold selisih-cell text-gray-400">-</td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('multi_results_container').classList.remove('hidden');
+        }
+
+        function calcRowSelisih(inputEl) {
+            const aktual = parseFloat(inputEl.value);
+            const tr = inputEl.closest('tr');
+            const qtySistem = parseFloat(tr.dataset.sistem) || 0;
+            const selisihCell = tr.querySelector('.selisih-cell');
+            
+            if (isNaN(aktual)) {
+                selisihCell.textContent = "-";
+                selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-gray-400";
+            } else {
+                const diff = aktual - qtySistem;
+                
+                if (diff > 0) {
+                    selisihCell.textContent = "+" + diff; 
+                    selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-green-600 bg-gray-50"; // Teks Hijau untuk plus
+                } else if (diff < 0) {
+                    selisihCell.textContent = diff;
+                    selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-red-600 bg-gray-50"; // Teks Merah untuk minus
+                } else {
+                    selisihCell.textContent = diff;
+                    selisihCell.className = "px-3 py-2 text-right font-bold selisih-cell text-gray-800 bg-gray-50"; // Hitam netral untuk 0 balance
+                }
+            }
+        }
+
+        function sendToGoogleSheet(record) {
+            if (!GOOGLE_APP_SCRIPT_URL || GOOGLE_APP_SCRIPT_URL === "TARUH_URL_APPS_SCRIPT_ANDA_DISINI") return;
+
+            fetch(GOOGLE_APP_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(record)
+            }).then(() => {
+                console.log("Data dikirim ke Google Sheet");
+            }).catch(error => {
+                console.error("Gagal mengirim ke Google Sheet:", error);
+            });
+        }
+
+        function saveAllFilledData() {
+            const tbody = document.getElementById('multi_results_body');
+            const rows = tbody.querySelectorAll('tr[data-is-data-row="true"]');
+            let savedCount = 0;
+
+            const tanggal = document.getElementById('tanggal').value;
+            const shift = document.getElementById('shift').value;
+            const plant = document.getElementById('plant').value;
+            const pelaksana = document.getElementById('pelaksana').value;
+            const material = document.getElementById('material').value;
+            
+            // Mengambil isi catatan dari textarea yang baru
+            const catatanForm = document.getElementById('catatan_input_form').value;
+
+            if (!tanggal || !shift || !plant || !pelaksana || !material) {
+                showMessage("Mohon lengkapi Informasi Umum (Tanggal, Shift, Plant, Pelaksana) di sebelah kiri terlebih dahulu.", "warning");
+                return;
+            }
+
+            rows.forEach((tr, index) => {
+                const qtyAktualInput = tr.querySelector('input[type="number"]');
+                
+                if (qtyAktualInput && qtyAktualInput.value !== "") {
+                    const record = {
+                        id: Date.now().toString() + index.toString(),
+                        tanggal: tanggal,
+                        shift: shift,
+                        plant: (tr.dataset.plant && tr.dataset.plant !== '-') ? tr.dataset.plant : plant,
+                        pelaksana: pelaksana,
+                        material: material.toUpperCase(),
+                        material_desc: tr.cells[0].textContent,
+                        mfr_part_no: tr.cells[1].textContent,
+                        material_type: tr.dataset.type,
+                        storage_loc: tr.dataset.loc,
+                        storage_bin: tr.cells[2].textContent,
+                        batch: tr.cells[3].textContent,
+                        uom: tr.cells[4].textContent,
+                        unrestricted: tr.dataset.sistem,
+                        qty_aktual: qtyAktualInput.value,
+                        selisih: tr.cells[7].textContent,
+                        catatan: catatanForm
+                    };
+
+                    opnameData.unshift(record);
+                    
+                    if (window.cloudSaveRecord) {
+                        window.cloudSaveRecord(record);
+                    }
+                    
+                    sendToGoogleSheet(record);
+                    savedCount++;
+                }
+            });
+
+            if (savedCount === 0) {
+                showMessage("Mohon isi Qty Aktual pada minimal 1 baris sebelum menekan tombol Simpan.", "warning");
+                return;
+            }
+
+            localStorage.setItem('opname_data', JSON.stringify(opnameData));
+
+            // Reset Form Material & Catatan
+            document.getElementById('material').value = '';
+            document.getElementById('catatan_input_form').value = '';
+            
+            // Hapus isi form pelaksana
+            document.getElementById('pelaksana').value = '';
+            localStorage.removeItem('last_pelaksana');
+
+            // Kosongkan pilihan Shift dan Plant
+            document.getElementById('shift').value = '';
+            localStorage.removeItem('last_shift');
+            document.getElementById('plant').value = '';
+            localStorage.removeItem('last_plant');
+            
+            document.getElementById('multi_results_container').classList.add('hidden');
+            document.getElementById('empty-search-state').style.display = 'block';
+            document.getElementById('material').focus();
+
+            renderTable();
+            
+            // Success Modal
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('modal-title').textContent = 'Berhasil';
+            document.getElementById('modal-icon').className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 text-green-600 mb-4';
+            document.getElementById('modal-icon').innerHTML = '<i class="fas fa-check text-xl"></i>';
+            document.getElementById('modal-message').textContent = `${savedCount} data stok berhasil disimpan.`;
+            document.getElementById('modal-btn-ok').className = 'w-full inline-flex justify-center rounded-md px-4 py-2 bg-green-600 text-white font-medium hover:bg-green-700 sm:text-sm';
+            document.getElementById('modal-btn-ok').textContent = 'OK';
+            document.getElementById('modal-btn-cancel').classList.add('hidden');
+            
+            document.getElementById('custom-modal-content').classList.remove('scale-95', 'opacity-0');
+            modal.classList.remove('hidden');
+            document.getElementById('modal-btn-ok').onclick = () => { modal.classList.add('hidden'); };
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            const emptyState = document.getElementById('empty-state');
+            
+            tbody.innerHTML = '';
+
+            if (opnameData.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            const displayData = opnameData.slice(0, 10);
+
+            displayData.forEach((row, index) => {
+                const isEven = index % 2 === 0;
+                const baseBg = isEven ? "bg-white" : "bg-gray-50";
+                
+                const selisihVal = parseFloat(row.selisih);
+                let displaySelisih = row.selisih;
+                let textColorClass = "text-gray-800"; // Default (Balance)
+                
+                // Setel format + dan penentuan warna text untuk riwayat
+                if(selisihVal > 0) {
+                    if(!String(row.selisih).startsWith('+')) {
+                        displaySelisih = "+" + selisihVal;
+                    }
+                    textColorClass = "text-green-600";
+                } else if (selisihVal < 0) {
+                    textColorClass = "text-red-600";
+                }
+                
+                const formattedDate = new Date(row.tanggal).toLocaleString('id-ID', {
+                    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+                });
+
+                const tr = document.createElement('tr');
+                tr.className = `${baseBg} hover:bg-blue-50 transition-colors`;
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-center text-gray-500">${index + 1}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-600">${formattedDate}</td>
+                    <td class="px-4 py-3 text-xs text-gray-600">${row.plant.split(' - ')[0]}</td>
+                    <td class="px-4 py-3 font-bold text-blue-700">${row.material}</td>
+                    <td class="px-4 py-3 text-gray-600 font-medium">${row.batch || '-'}</td>
+                    <td class="px-4 py-3 text-right text-gray-500">${row.unrestricted}</td>
+                    <td class="px-4 py-3 text-right font-bold text-gray-800">${row.qty_aktual}</td>
+                    <td class="px-4 py-3 text-right font-bold ${textColorClass}">${displaySelisih}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'stock-opname-app-final';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const statusEl = document.getElementById('cloud-status');
+
+        if (!firebaseConfig) {
+            statusEl.innerHTML = '<i class="fas fa-cloud-download-alt text-yellow-400 mr-2"></i><span class="text-yellow-100 text-xs font-medium">Offline Mode</span>';
+        } else {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+
+            async function initCloud() {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined') {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    
+                    if (!auth.currentUser) return;
+                    
+                    statusEl.className = "bg-green-700 px-3 py-1 rounded-full text-sm flex items-center border border-green-600";
+                    statusEl.innerHTML = '<i class="fas fa-cloud-upload-alt text-green-300 mr-2"></i><span class="text-green-50 text-xs font-medium">Tersambung ke Cloud</span>';
+
+                    const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'opname_records');
+                    onSnapshot(colRef, (snapshot) => {
+                        const data = [];
+                        snapshot.forEach(d => {
+                            data.push({ id: d.id, ...d.data() });
+                        });
+                        
+                        data.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+                        
+                        window.opnameData = data;
+                        if (typeof window.renderTable === 'function') {
+                            window.renderTable();
+                        }
+                        
+                        localStorage.setItem('opname_data', JSON.stringify(data));
+                    }, (error) => {
+                        console.error("Sinkronisasi gagal:", error);
+                        statusEl.className = "bg-red-700 px-3 py-1 rounded-full text-sm flex items-center border border-red-600";
+                        statusEl.innerHTML = '<i class="fas fa-exclamation-circle text-red-300 mr-2"></i><span class="text-red-50 text-xs font-medium">Koneksi Cloud Terputus</span>';
+                    });
+                } catch (error) {
+                    console.error("Gagal menyambung ke Cloud", error);
+                }
+            }
+
+            window.cloudSaveRecord = async function(record) {
+                if (!auth.currentUser) return;
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'opname_records', record.id.toString());
+                    await setDoc(docRef, record);
+                } catch(e) {
+                    console.error("Gagal simpan ke cloud", e);
+                }
+            };
+
+            initCloud();
         }
     </script>
 </body>
