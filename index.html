@@ -223,7 +223,7 @@
         let mb52Data = [];
         let currentMatches = [];
         
-        const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxevB8_Ibb7qWvinmGXPWPD-bdzIAwVMn8qkMPasvx6nOhglNX6LsHV8Idf0kdQmwsq5A/exec";
+        const GOOGLE_APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3tZK6DGHV-9BWX7Gyt-r9qUzaJQajnEkUjLSHgyn82atJU7QkGntTdg0nYSrtWUPmXw/exec";
         
         window.onload = function() {
             setInitialDateTime();
@@ -361,34 +361,60 @@
         function loadMB52Data() {
             const statusEl = document.getElementById('mb52-status');
             
-            // Menggunakan endpoint gviz yang kebal terhadap pengalihan tampilan HP 
-            // dan menambahkan timestamp agar HP tidak membaca cache memori lama
+            // Tambahkan timestamp untuk menghindari cache HP yang sulit hilang
             const timestamp = new Date().getTime();
-            const sheetUrl = 'https://docs.google.com/spreadsheets/d/1oee_y9aXf7UUL64zfyjayMcVa7RrEtEtAvmkE-SJARU/gviz/tq?tqx=out:csv&gid=15384621&_cache=' + timestamp;
+            // Menggunakan jalur export CSV standar Google Sheet
+            const sheetUrl = 'https://docs.google.com/spreadsheets/d/1oee_y9aXf7UUL64zfyjayMcVa7RrEtEtAvmkE-SJARU/export?format=csv&gid=15384621&_cache=' + timestamp;
 
-            Papa.parse(sheetUrl, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    if(results.data && results.data.length > 0) {
-                        mb52Data = results.data;
-                        statusEl.className = "bg-green-100 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-green-300 whitespace-nowrap";
-                        statusEl.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-1 sm:mr-2"></i><span class="text-green-800 font-medium hidden sm:inline">MB52 Siap ('+mb52Data.length+')</span><span class="text-green-800 font-medium sm:hidden">Siap</span>';
-                    } else {
-                        statusEl.className = "bg-red-100 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-red-300 whitespace-nowrap";
-                        statusEl.innerHTML = '<i class="fas fa-exclamation-triangle text-red-600 mr-1 sm:mr-2"></i><span class="text-red-800 font-medium hidden sm:inline">Data Kosong</span><span class="text-red-800 font-medium sm:hidden">Kosong</span>';
+            // Menggunakan fetch API modern yang lebih stabil di perangkat seluler
+            fetch(sheetUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error("Jaringan gagal atau akses ditolak");
+                    return response.text();
+                })
+                .then(csvText => {
+                    // Cek jika Google mengirim halaman Login HTML alih-alih data CSV
+                    if(csvText.includes('<html') || csvText.includes('<!DOCTYPE')) {
+                        throw new Error("Akses ditolak oleh Google. File Sheet belum di-Share untuk umum.");
                     }
-                },
-                error: function(error) {
+                    
+                    Papa.parse(csvText, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: function(results) {
+                            if(results.data && results.data.length > 0) {
+                                mb52Data = results.data;
+                                statusEl.className = "bg-green-100 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-green-300 whitespace-nowrap";
+                                statusEl.innerHTML = '<i class="fas fa-check-circle text-green-600 mr-1 sm:mr-2"></i><span class="text-green-800 font-medium hidden sm:inline">MB52 Siap ('+mb52Data.length+')</span><span class="text-green-800 font-medium sm:hidden">Siap</span>';
+                            } else {
+                                throw new Error("Data CSV kosong. Pastikan sheet berisi data.");
+                            }
+                        },
+                        error: function(error) {
+                            throw new Error("Gagal membaca CSV: " + error.message);
+                        }
+                    });
+                })
+                .catch(error => {
                     console.error("Error loading MB52:", error);
                     statusEl.className = "bg-red-100 px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-sm flex items-center border border-red-300 cursor-help whitespace-nowrap";
-                    statusEl.title = "Pastikan Share Google Sheet MB52 disetting 'Anyone with the link'";
-                    statusEl.innerHTML = '<i class="fas fa-times-circle text-red-600 mr-1 sm:mr-2"></i><span class="text-red-800 font-medium hidden sm:inline">Akses Ditolak</span><span class="text-red-800 font-medium sm:hidden">Ditolak</span>';
+                    statusEl.title = error.message;
+                    statusEl.innerHTML = '<i class="fas fa-times-circle text-red-600 mr-1 sm:mr-2"></i><span class="text-red-800 font-medium hidden sm:inline">Gagal Load</span><span class="text-red-800 font-medium sm:hidden">Error</span>';
                     
-                    showMessage("Gagal memuat data pencarian MB52 dari Google Sheet.<br><br><b>Solusi:</b> Buka Google Sheet MB52 Anda, klik tombol <b>Bagikan (Share)</b>, lalu ubah Akses Umum menjadi <b>'Siapa saja yang memiliki link' (Anyone with the link)</b>.", "error");
-                }
-            });
+                    showMessage(`
+                        <div class="text-left mt-2">
+                            <p class="mb-2 text-sm font-medium text-gray-700">Aplikasi gagal memuat data referensi MB52.</p>
+                            <div class="bg-red-50 p-3 rounded-md border border-red-200 mb-3">
+                                <p class="text-xs font-mono text-red-600 break-words">${error.message}</p>
+                            </div>
+                            <p class="text-sm mb-2 font-bold text-gray-800">Solusi (Pilih Salah Satu):</p>
+                            <ul class="list-disc pl-5 text-xs text-gray-700 space-y-2">
+                                <li><b>Buka Akses Sheet:</b> Pastikan Google Sheet MB52 Anda sudah diklik <b>Bagikan (Share)</b> dan diset ke <b>"Siapa saja yang memiliki link"</b>.</li>
+                                <li><b>Jangan Buka via File Manager HP:</b> Jika Anda mengunduh file ini, keamanan HP memblokirnya. Ubah file ini menjadi link Web sesungguhnya. (Lihat panduan di bawah)</li>
+                            </ul>
+                        </div>
+                    `, "error", null, "Gagal Memuat MB52");
+                });
         }
 
         function handleEnter(e) {
